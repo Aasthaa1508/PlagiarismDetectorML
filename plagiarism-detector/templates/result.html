@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            border: none;
+            border-radius: 10px;
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .btn {
+            border-radius: 5px;
+            padding: 10px 20px;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        .custom-table th {
+            background-color: #0d6efd;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #dee2e6;
+        }
+        .custom-table td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+        .custom-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .custom-table tr:hover {
+            background-color: #e9ecef;
+        }
+        .similarity-high {
+            background-color: #ffcccc !important;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .similarity-medium {
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+        .plagiarism-yes {
+            background-color: #ffcccc !important;
+            font-weight: bold;
+            color: #dc3545;
+            text-align: center;
+        }
+        .plagiarism-no {
+            background-color: #d4edda !important;
+            color: #155724;
+            text-align: center;
+        }
+        .document-cell {
+            max-width: 250px;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .similarity-cell {
+            text-align: center;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        .status-cell {
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Plagiarism Detection Results</h1>
+        
+        <div class="d-flex justify-content-between mb-4">
+            <a href="/" class="btn btn-secondary">← Back to Upload</a>
+            <form method="POST" action="/clear">
+                <button type="submit" class="btn btn-danger">Clear All Documents</button>
+            </form>
+        </div>
+        
+        {% if plagiarism_100 %}
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">🚨 100% Plagiarism Detected!</h4>
+            <p class="mb-1">The following document pairs are identical:</p>
+            <ul class="mb-0">
+                {% for pair in plagiarism_100 %}
+                <li><strong>{{ pair.doc1 }}</strong> and <strong>{{ pair.doc2 }}</strong></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Similarity Results (Threshold: {{ threshold }})</h2>
+            </div>
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th width="35%">Document 1</th>
+                            <th width="35%">Document 2</th>
+                            <th width="15%">Similarity Score</th>
+                            <th width="15%">Plagiarism Detected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                        <tr>
+                            <td class="document-cell">{{ row['Document 1'] }}</td>
+                            <td class="document-cell">{{ row['Document 2'] }}</td>
+                            <td class="similarity-cell 
+                                {% if row['Similarity Score'] == '100.00%' %}similarity-high
+                                {% elif row['Similarity Score']|float > 0.6 %}similarity-medium
+                                {% endif %}">
+                                {{ row['Similarity Score'] }}
+                            </td>
+                            <td class="status-cell 
+                                {% if row['Plagiarism Detected'] == 'YES' %}plagiarism-yes{% else %}plagiarism-no{% endif %}">
+                                {{ row['Plagiarism Detected'] }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some interactive effects
+            const tableRows = document.querySelectorAll('.custom-table tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.01)';
+                    this.style.transition = 'transform 0.2s ease';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
